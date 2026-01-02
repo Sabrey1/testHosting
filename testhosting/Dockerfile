@@ -2,37 +2,46 @@ FROM php:8.2-fpm
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
-    nginx \
     git \
-    unzip \
+    curl \
     libpng-dev \
     libonig-dev \
     libxml2-dev \
     zip \
-    curl \
-    libzip-dev \
-    && docker-php-ext-install pdo pdo_mysql mbstring zip exif pcntl gd
+    unzip \
+    nginx
 
-# Install Composer
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+# Clear cache
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Install PHP extensions
+RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
+
+# Get Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # Set working directory
-WORKDIR /var/www
+WORKDIR /var/www/html
 
-# Copy project
+# Copy application files
 COPY . .
 
-# Install PHP dependencies
+# Install dependencies
 RUN composer install --no-dev --optimize-autoloader
 
-# Laravel permissions
-RUN chown -R www-data:www-data storage bootstrap/cache
+# Set permissions
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 755 /var/www/html/storage
 
-# Copy Nginx config
-COPY nginx.conf /etc/nginx/sites-available/default
+# Copy nginx config
+COPY nginx.conf /etc/nginx/nginx.conf
 
-# Expose Render port
+# Generate app key and optimize
+RUN php artisan key:generate && \
+    php artisan config:cache && \
+    php artisan route:cache && \
+    php artisan view:cache
+
 EXPOSE 10000
 
-# Start services
-CMD service nginx start && php-fpm
+CMD php artisan serve --host=0.0.0.0 --port=10000

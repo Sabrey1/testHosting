@@ -1,22 +1,19 @@
 services:
   - type: web
     name: laravel-app
-    env: php
+    env: docker
     plan: free
     region: singapore
-
-    buildCommand: |
-      composer install --no-dev --optimize-autoloader
-      php artisan key:generate
-      php artisan config:clear
-      php artisan route:clear
-      php artisan view:clear
-
-    startCommand: |
-      php -S 0.0.0.0:10000 -t public
-
+    dockerfilePath: ./Dockerfile
+    
     envVars:
       - key: APP_ENV
         value: production
       - key: APP_DEBUG
         value: false
+      - key: APP_KEY
+        generateValue: true
+      - key: DB_CONNECTION
+        value: sqlite
+      - key: DB_DATABASE
+        value: /var/www/html/database/database.sqlite
