@@ -27,21 +27,20 @@ COPY composer.json composer.lock ./
 # Install dependencies
 RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
 
-# Copy all application files
+# Copy application
 COPY . .
 
 # Set permissions
 RUN mkdir -p storage/logs storage/framework/sessions storage/framework/views storage/framework/cache bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache
 
-# Generate key and clear cache
-RUN php artisan key:generate --no-interaction || true \
-    && php artisan config:clear \
+# Clear cache
+RUN php artisan config:clear \
     && php artisan route:clear \
     && php artisan view:clear
 
-# Expose port
-EXPOSE 10000
+# Expose port 8080 (DigitalOcean default)
+EXPOSE 8080
 
-# Start the server
-CMD php artisan serve --host=0.0.0.0 --port=10000
+# Start application
+CMD php artisan serve --host=0.0.0.0 --port=8080
