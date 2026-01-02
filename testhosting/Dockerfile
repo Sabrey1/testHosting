@@ -21,25 +21,25 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Set working directory
 WORKDIR /var/www/html
 
-# Copy composer files
-COPY composer.json composer.lock ./testhosting
+# Copy only composer.json
+COPY composer.json ./
 
-# Install dependencies
-RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
+# Generate composer.lock and install dependencies in one step
+RUN composer install --no-dev --optimize-autoloader --no-interaction
 
-# Copy application
+# Copy rest of application
 COPY . .
 
 # Set permissions
 RUN mkdir -p storage/logs storage/framework/sessions storage/framework/views storage/framework/cache bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache
 
-# Clear cache
+# Clear Laravel cache
 RUN php artisan config:clear \
     && php artisan route:clear \
     && php artisan view:clear
 
-# Expose port 10000 (Render)
+# Expose port
 EXPOSE 10000
 
 # Start application
