@@ -21,11 +21,8 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Set working directory
 WORKDIR /var/www/html
 
-# Copy composer.json first
-COPY composer.json ./
-
-# Copy composer.lock if it exists (optional)
-COPY composer.lock* ./
+# Copy composer files
+COPY composer.json composer.lock ./
 
 # Install dependencies
 RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
@@ -42,8 +39,8 @@ RUN php artisan config:clear \
     && php artisan route:clear \
     && php artisan view:clear
 
-# Expose port 8080 (DigitalOcean) or 10000 (Render)
-EXPOSE 8080
+# Expose port 10000 (Render)
+EXPOSE 10000
 
 # Start application
-CMD php artisan serve --host=0.0.0.0 --port=8080
+CMD php artisan serve --host=0.0.0.0 --port=10000
