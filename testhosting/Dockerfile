@@ -27,20 +27,21 @@ COPY composer.json composer.lock ./
 # Install dependencies
 RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
 
-# Copy application code
+# Copy all application files
 COPY . .
 
-# Create storage and cache directories
-RUN mkdir -p storage/logs storage/framework/sessions storage/framework/views storage/framework/cache \
+# Set permissions
+RUN mkdir -p storage/logs storage/framework/sessions storage/framework/views storage/framework/cache bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache
 
-# Clear and cache config
-RUN php artisan config:clear \
+# Generate key and clear cache
+RUN php artisan key:generate --no-interaction || true \
+    && php artisan config:clear \
     && php artisan route:clear \
     && php artisan view:clear
 
 # Expose port
 EXPOSE 10000
 
-# Start application
+# Start the server
 CMD php artisan serve --host=0.0.0.0 --port=10000
